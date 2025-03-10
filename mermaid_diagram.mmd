@@ -1,0 +1,66 @@
+flowchart TB
+    subgraph "Frontend"
+        UI["HTML/JS\nUser Interface"]
+    end
+
+    subgraph "FastAPI Service"
+        FE["FastAPI App"]
+        FE_API1["API: /api/analyze-pr"]
+        FE_API2["API: /api/task-status/{task_id}"]
+        FE --> FE_API1
+        FE --> FE_API2
+    end
+
+    subgraph "Django Backend"
+        DJ["Django App"]
+        DJ_API1["API: /api/tasks/create"]
+        DJ_API2["API: /api/tasks/{task_id}/status"]
+        DJ --> DJ_API1
+        DJ --> DJ_API2
+        
+        subgraph "Utils"
+            GitHub["GitHub Utils"]
+            AIAgent["AI Analysis Engine"]
+        end
+        
+        CeleryTask["Celery Task\n(execute_pr_analysis)"]
+    end
+
+    subgraph "External Services"
+        GithubAPI["GitHub API"]
+        GroqAPI["Groq LLM API"]
+    end
+
+    subgraph "Message Broker & DB"
+        CeleryBroker["Celery Message Broker\n(Redis/RabbitMQ)"]
+    end
+
+    %% Frontend to FastAPI connections
+    UI -->|HTTP Request| FE_API1
+    UI -->|Status Check| FE_API2
+
+    %% FastAPI to Django connections
+    FE_API1 -->|Forward Request| DJ_API1
+    FE_API2 -->|Get Status| DJ_API2
+
+    %% Django internal flow
+    DJ_API1 -->|Create Task| CeleryTask
+    CeleryTask -->|Queue Task| CeleryBroker
+    CeleryBroker -->|Process Task| CeleryTask
+    CeleryTask -->|Analyze PR| AIAgent
+    CeleryTask -->|Fetch PR Files| GitHub
+    DJ_API2 -->|Check Status| CeleryTask
+
+    %% External API connections
+    GitHub -->|Fetch PR Data| GithubAPI
+    AIAgent -->|Code Analysis| GroqAPI
+
+    classDef primary fill:#4A6FDC,stroke:#333,stroke-width:1px,color:white;
+    classDef secondary fill:#34C759,stroke:#333,stroke-width:1px,color:white;
+    classDef external fill:#FF9500,stroke:#333,stroke-width:1px,color:white;
+    classDef broker fill:#FF3B30,stroke:#333,stroke-width:1px,color:white;
+
+    class UI,FE,DJ primary;
+    class FE_API1,FE_API2,DJ_API1,DJ_API2,CeleryTask,GitHub,AIAgent secondary;
+    class GithubAPI,GroqAPI external;
+    class CeleryBroker broker;

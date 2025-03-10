@@ -1,1 +1,1 @@
-![Microservice Architecture](https://i.ibb.co/JwJgqjkS/Screenshot-2025-03-10-at-5-54-55-PM.png)
+<img src="https://i.ibb.co/JwJgqjkS/Screenshot-2025-03-10-at-5-54-55-PM.png" alt="Screenshot-2025-03-10-at-5-54-55-PM" border="0" />
